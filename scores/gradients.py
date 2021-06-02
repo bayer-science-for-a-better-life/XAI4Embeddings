@@ -1,5 +1,4 @@
 import torch
-import torchvision.models as models
 import numpy as np
 import time
 from typing import List
@@ -234,41 +233,3 @@ def concept_importance(model: torch.nn.Module,
                 print(f'Done with # {i} outputs in {round((end - start_compute) / 60, 3)}. Sample = {nsamples}.')
 
         return output_phis
-
-# TODO: remove main. Just for debugging
-if __name__ == '__main__':
-    net = models.resnet18(pretrained=True)
-    net.eval()
-    layer = net.layer4[0].conv1
-
-    input_layer = extract_input_layer(model=net, layer=layer, data=torch.rand(5, 3, 224, 224))
-
-    print('We generate a list of', len(input_layer))
-    print('len=', len(input_layer[0]), 'shape=', input_layer[0].shape)
-
-    grad_test = get_gradient(model=net, layer=layer, data=torch.rand(5, 3, 224, 224), idx=0)
-
-    print('We generated grads as a list of', len(grad_test))
-    print('len=', len(grad_test), 'shape=', grad_test[0].shape)
-
-    device = torch.device(f'cuda:{1}') if torch.cuda.is_available() else torch.device('cpu')
-
-    start = time.time()
-
-    CI = concept_importance(net.to(device), layer=net.layer4[0].conv1,
-                            model_input=torch.rand(1, 3, 224, 224).to(device),
-                            background=torch.rand(1, 3, 224, 224).to(device),
-                            nsamples=1,
-                            with_grads=True,
-                            device=device)
-
-    print(CI[0])
-
-    print('We generated grads as a list of', len(CI))
-    print('shape=', CI[0].shape)
-
-    end = time.time()
-
-    print('total time', (end - start) / 60)
-
-    exit(22)

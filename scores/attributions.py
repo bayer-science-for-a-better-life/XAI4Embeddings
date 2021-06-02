@@ -88,31 +88,22 @@ def compute_importance_features(pre_model: torch.nn.Module,
     return importance_features
 
 
-def chain_rule_downstream(shap_values, shap_values_pret, abs_value=True, summing='sum'):
+def chain_rule_downstream(sp_values, sp_values_pret, abs_value=True, summing='sum'):
     result = []
-    for output in range(len(shap_values)):
+    for output in range(len(sp_values)):
         result_output = []
-        for tile in range(shap_values[output].shape[0]):
-            SV_class = shap_values[output][tile, :]
+        for tile in range(sp_values[output].shape[0]):
+            SV_class = sp_values[output][tile, :]
 
-            SV_pret = [s[tile] for s in shap_values_pret]  # fixing tile
-            new_SV_pret = [np.sqrt(np.abs(shap)).sum(axis=0) for shap in SV_pret]
+            SV_pret = [s[tile] for s in sp_values_pret]
+            new_SV_pret = [np.sqrt(np.abs(s)).sum(axis=0) for s in SV_pret]
 
             if summing == 'sum':
-                if abs_value:
-                    res = sum(abs(SVc) * nsp for SVc, nsp in zip(SV_class, new_SV_pret))
-                else:
-                    res = sum(SVc * nsp for SVc, nsp in zip(SV_class, new_SV_pret))
+                res = sum(SVc * nsp for SVc, nsp in zip(SV_class, new_SV_pret))
             elif summing == 'var':
-                if abs_value:
-                    res = np.array([abs(SVc) * nsp for SVc, nsp in zip(SV_class, new_SV_pret)]).var(axis=0)
-                else:
-                    res = np.array([SVc * nsp for SVc, nsp in zip(SV_class, new_SV_pret)]).var(axis=0)
-            elif summing == 'exp':
-                if abs_value:
-                    res = sum(np.exp(abs(SVc)) * nsp for SVc, nsp in zip(SV_class, new_SV_pret))
-                else:
-                    res = sum(np.exp(SVc) * nsp for SVc, nsp in zip(SV_class, new_SV_pret))
+                res = np.array([SVc * nsp for SVc, nsp in zip(SV_class, new_SV_pret)]).var(axis=0)
+            elif summing == 'abs':
+                res = sum(abs(SVc) * nsp for SVc, nsp in zip(SV_class, new_SV_pret))
             else:
                 raise NotImplementedError("Selected aggregation methods not implemented!")
 
