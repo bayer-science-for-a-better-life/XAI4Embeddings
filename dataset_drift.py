@@ -70,7 +70,6 @@ class Decoder(torch.nn.Module):
     def __init__(self):
         super(Decoder, self).__init__()
         self.rep_dim = 32
-        self.pool = nn.MaxPool2d(2, 2)
 
         # Decoder
         self.deconv1 = nn.ConvTranspose2d(2, 4, 5, bias=False, padding=2)
@@ -80,11 +79,11 @@ class Decoder(torch.nn.Module):
         self.deconv3 = nn.ConvTranspose2d(8, 1, 5, bias=False, padding=2)
 
     def forward(self, x):
-        x = F.interpolate(F.leaky_relu(x), scale_factor=2)
+        x = F.interpolate(F.relu(x), scale_factor=2)
         x = self.deconv1(x)
-        x = F.interpolate(F.leaky_relu(self.bn3(x)), scale_factor=2)
+        x = F.interpolate(F.relu(self.bn3(x)), scale_factor=2)
         x = self.deconv2(x)
-        x = F.interpolate(F.leaky_relu(self.bn4(x)), scale_factor=2)
+        x = F.interpolate(F.relu(self.bn4(x)), scale_factor=2)
         x = self.deconv3(x)
         x = torch.sigmoid(x)
         return x
