@@ -1,3 +1,5 @@
+"Adapted from: https://github.com/slundberg/shap/blob/master/shap/explainers/_gradient.py"
+
 import torch
 import numpy as np
 import time
