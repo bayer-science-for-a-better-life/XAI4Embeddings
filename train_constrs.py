@@ -24,7 +24,7 @@ def get_parser():
                         help='Name of directory to save the results.')
 
     parser.add_argument('--objective', action='store', dest='objective', default='noise', type=str,
-                        help='Which learning strategy to implement.')
+                        help='Which learning strategy to implement. Defaults to "noise"')
 
     parser.add_argument('--emb_dim', action='store', dest='emb_dim', default=3, type=int,
                         help="Dimension of the bottleneck embedding. Defaults to 3")
@@ -89,7 +89,7 @@ class MNIST_AE(pl.LightningModule):
         loss = F.mse_loss(x_hat, x.view(x.size(0), -1))
         self.log('train_loss', loss, prog_bar=True, on_step=True, on_epoch=True)
 
-        if self.global_step % 20 == 0:
+        if self.global_step % 20 == 0 and self.objective != 'normal':
 
             imp_featu = compute_importance_features(pre_model=self.encoder_conv,
                                                     layer=self.encoder_conv.conv2,
@@ -100,24 +100,26 @@ class MNIST_AE(pl.LightningModule):
                                                     size=28,
                                                     with_grads=self.compute_grads)
 
-            imp_noise = compute_importance_features(pre_model=self.encoder_conv,
-                                                    layer=self.encoder_conv.conv2,
-                                                    data=torch.rand(
-                                                        size=(x.shape[0], x.shape[1], x.shape[2], x.shape[3])),
-                                                    samples_idx=None,
-                                                    n_samples=1,
-                                                    device=self.device,
-                                                    size=28,
-                                                    with_grads=self.compute_grads)
+            if self.objective in ['noise', 'only_noise']:
 
-            noise_sc = noise_score(imp_featu, imp_noise, transform='lin', grad=self.compute_grads).mean().to(
-                self.device)
+                imp_noise = compute_importance_features(pre_model=self.encoder_conv,
+                                                        layer=self.encoder_conv.conv2,
+                                                        data=torch.rand(
+                                                            size=(x.shape[0], x.shape[1], x.shape[2], x.shape[3])),
+                                                        samples_idx=None,
+                                                        n_samples=1,
+                                                        device=self.device,
+                                                        size=28,
+                                                        with_grads=self.compute_grads)
+                noise_sc = noise_score(imp_featu, imp_noise, transform='lin', grad=self.compute_grads).mean().to(
+                    self.device)
+                self.log('noise_score', noise_sc, prog_bar=True, on_step=True, on_epoch=True)
+
             var_sc = var_score(imp_featu,
                                transform='lin',
                                normalize_dim=True,
                                threshold=False,
                                grad=self.compute_grads).to(self.device).mean().to(self.device)
-            self.log('noise_score', noise_sc, prog_bar=True, on_step=True, on_epoch=True)
             self.log('var_score', var_sc, prog_bar=True, on_step=True, on_epoch=True)
         else:
             noise_sc = 0.0
@@ -128,7 +130,7 @@ class MNIST_AE(pl.LightningModule):
         if self.objective == 'noise':
             tot_loss = class_loss - self.coeff * noise_sc + loss
         elif self.objective == 'only_noise':
-            tot_loss = noise_sc
+            tot_loss = - noise_sc
         elif self.objective == 'only_var':
             tot_loss = - var_sc
         elif self.objective == 'both':
