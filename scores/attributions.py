@@ -16,7 +16,7 @@ def compute_importance_class(model: torch.nn.Module,
                              black_ref: bool = True,
                              with_grads: bool = False):
     if black_ref:
-        ref_image = torch.zeros(1, data.shape[1])
+        ref_image = torch.zeros(n_samples, data.shape[1])
     else:
         ref_image = torch.rand(n_samples, data.shape[1])
 
@@ -60,7 +60,13 @@ def compute_importance_features(pre_model: torch.nn.Module,
         else:
             ref_image = torch.zeros(1, data.shape[1])
     else:
-        ref_image = torch.rand(10, 3, size, size)
+        if len(data.shape) != 2:
+            if data.shape[1] != 1:
+                ref_image = torch.rand(1, 3, size, size)
+            else:
+                ref_image = torch.rand(1, 1, size, size)
+        else:
+            ref_image = torch.rand(1, data.shape[1])
 
     start = time.time()
 
@@ -88,7 +94,7 @@ def compute_importance_features(pre_model: torch.nn.Module,
     return importance_features
 
 
-def chain_rule_downstream(sp_values, sp_values_pret, abs_value=True, summing='sum'):
+def chain_rule_downstream(sp_values, sp_values_pret, summing='sum'):
     result = []
     for output in range(len(sp_values)):
         result_output = []
