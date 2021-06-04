@@ -30,15 +30,14 @@ def get_parser():
     parser.add_argument('--coeff', action='store', dest='coeff', default=0.2, type=float,
                         help='Noise controlling coefficient.')
 
-
     return parser.parse_args()
 
 
 def normalize_simple(image):
-
     if image.max() > 1:
         image /= 255
     return torch.tensor(image.swapaxes(-1, 1).swapaxes(2, 3)).float()
+
 
 class Encoder(torch.nn.Module):
     def __init__(self):
@@ -62,7 +61,7 @@ class Encoder(torch.nn.Module):
         x = self.conv3(x)
         x = self.pool(F.relu(x))
         x = x.view(x.size(0), -1)
-        #x = self.fc1(x)
+        # x = self.fc1(x)
         return x
 
 
