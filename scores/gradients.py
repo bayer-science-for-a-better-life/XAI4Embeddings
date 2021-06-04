@@ -20,7 +20,6 @@ def add_handles(layer):
 
 
 def extract_input_layer(model: torch.nn.Module, layer: torch.nn.Module, data: torch.Tensor) -> List[torch.Tensor]:
-
     model = model.eval()
     add_handles(layer)
 
@@ -41,7 +40,6 @@ def get_gradient(model: torch.nn.Module,
                  idx: int = None,
                  output_idx: int = 0,
                  with_grads: bool = True) -> List[torch.Tensor]:
-
     model_inputs = data.requires_grad_()
     model = model.eval()
 
@@ -98,7 +96,6 @@ def concept_importance(model: torch.nn.Module,
                        verbose: bool = False,
                        with_grads: bool = False,
                        device: torch.device = None):
-
     outputss = model(model_input)
     if isinstance(outputss, tuple):
         if verbose:
@@ -129,7 +126,6 @@ def concept_importance(model: torch.nn.Module,
         rseed = np.random.randint(0, 1e6)
 
     start_compute = time.time()
-
 
     for i in range(outputs.shape[1]):
         np.random.seed(rseed)
@@ -191,7 +187,8 @@ def concept_importance(model: torch.nn.Module,
             grads = []
             for b in range(0, nsamples, batch_size):
                 if not with_grads:
-                    batch = [samples_input[l][b:min(b + batch_size, nsamples)].clone().detach() for l in range(len(data))]
+                    batch = [samples_input[l][b:min(b + batch_size, nsamples)].clone().detach() for l in
+                             range(len(data))]
                     grads.append(get_gradient(
                         model=model,
                         layer=layer,

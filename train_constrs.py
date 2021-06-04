@@ -101,7 +101,6 @@ class MNIST_AE(pl.LightningModule):
                                                     with_grads=self.compute_grads)
 
             if self.objective in ['noise', 'only_noise']:
-
                 imp_noise = compute_importance_features(pre_model=self.encoder_conv,
                                                         layer=self.encoder_conv.conv2,
                                                         data=torch.rand(
