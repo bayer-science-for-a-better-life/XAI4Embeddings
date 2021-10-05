@@ -2,7 +2,7 @@
 
 ### Overview
 This repository contains the code implementation 
-for the submission *Explaining, Evaluating and Enhancing Neural Networks' Learned Representations*. 
+for the manuscript *Explaining, Evaluating and Enhancing Neural Networks' Learned Representations*. 
 We use [PyTorch Lightening](https://github.com/PyTorchLightning/pytorch-lightning) for 
 training the models in our experiments.
 
